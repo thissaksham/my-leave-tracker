@@ -20,12 +20,15 @@ const customOptions = document.getElementById('custom-options');
 const accumulationCheckbox = document.getElementById('leave-accumulation');
 const accumulationOptions = document.getElementById('accumulation-options');
 const leaveFormError = document.getElementById('leave-form-error');
-const leaveBalanceInput = document.getElementById('leave-balance');
+
+const annualLeavesInput = document.getElementById('leave-total');
 const accumulatedBalanceInput = document.getElementById('leave-accumulated-balance');
+const totalBalanceInput = document.getElementById('leave-balance');
 
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
-    const percentage = leave.total > 0 ? (leave.balance / leave.total) * 100 : 0;
+    const annualGrant = leave.annualGrant || leave.total; // Backward compatibility
+    const percentage = annualGrant > 0 ? (leave.balance / annualGrant) * 100 : 0;
     let bgColor = percentage < 25 ? 'bg-red-500' : percentage < 50 ? 'bg-yellow-500' : 'bg-green-500';
 
     let accumulationHTML = '';
@@ -51,11 +54,10 @@ export function renderLeaveType(leave, memberId, memberName) {
                     <button class="edit-leave-btn text-gray-400 hover:text-blue-500" data-member-id="${memberId}" data-leave-id="${leave.id}">
                          <svg class="h-4 w-4 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
                     </button>
-                    <!-- Delete leave button can be added here -->
                 </div>
                 <div class="flex items-baseline space-x-1">
                     <span class="font-bold text-lg">${leave.balance}</span>
-                    <span class="text-gray-500 text-sm">/ ${leave.total} left</span>
+                    <span class="text-gray-500 text-sm">/ ${annualGrant} left</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -69,6 +71,12 @@ export function renderLeaveType(leave, memberId, memberName) {
 function openModal(modal) { modal.classList.remove('hidden'); }
 function closeModal(modal) { modal.classList.add('hidden'); }
 
+function calculateTotalBalance() {
+    const annual = parseFloat(annualLeavesInput.value) || 0;
+    const accumulated = parseFloat(accumulatedBalanceInput.value) || 0;
+    totalBalanceInput.value = annual + accumulated;
+}
+
 function setupLeaveForm(leave = null, memberId) {
     leaveForm.reset();
     leaveFormError.classList.add('hidden');
@@ -81,8 +89,8 @@ function setupLeaveForm(leave = null, memberId) {
         leaveModalTitle.innerText = 'Edit Leave Type';
         document.getElementById('leave-type-id').value = leave.id;
         document.getElementById('leave-type').value = leave.type;
-        document.getElementById('leave-total').value = leave.total;
-        leaveBalanceInput.value = leave.balance;
+        annualLeavesInput.value = leave.annualGrant || leave.total; // Backward compatibility
+        totalBalanceInput.value = leave.balance;
         cycleSelect.value = leave.resetCycle;
 
         if (leave.resetCycle === 'annually') {
@@ -100,12 +108,10 @@ function setupLeaveForm(leave = null, memberId) {
     } else { // Adding new leave
         leaveModalTitle.innerText = 'Add Leave Type';
         document.getElementById('leave-type-id').value = '';
-        // New logic: auto-fill accumulated with current balance when adding
-        if (leaveBalanceInput.value) {
-            accumulatedBalanceInput.value = leaveBalanceInput.value;
-        }
     }
 
+    // Trigger calculation and visibility updates
+    calculateTotalBalance();
     cycleSelect.dispatchEvent(new Event('change'));
     accumulationCheckbox.dispatchEvent(new Event('change'));
     openModal(leaveModal);
@@ -129,10 +135,11 @@ async function handleLeaveFormSubmit(e) {
         resetDetails.resetMonth = null;
     }
 
+    // Prepare data object with new field names
     const leaveData = {
         type: document.getElementById('leave-type').value.trim(),
-        total: parseFloat(document.getElementById('leave-total').value),
-        balance: parseFloat(leaveBalanceInput.value),
+        annualGrant: parseFloat(annualLeavesInput.value),
+        balance: parseFloat(totalBalanceInput.value),
         resetCycle,
         ...resetDetails,
         allowAccumulation,
@@ -140,7 +147,7 @@ async function handleLeaveFormSubmit(e) {
         accumulatedBalance: allowAccumulation ? parseFloat(accumulatedBalanceInput.value) || 0 : 0,
     };
 
-    if (!leaveData.type || isNaN(leaveData.total) || isNaN(leaveData.balance)) {
+    if (!leaveData.type || isNaN(leaveData.annualGrant)) {
         leaveFormError.innerText = "Please fill in all required fields.";
         leaveFormError.classList.remove('hidden');
         return;
@@ -195,15 +202,8 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// New listener for balance input change
-leaveBalanceInput.addEventListener('input', (e) => {
-    // Only auto-fill when ADDING a new leave
-    const isAdding = !document.getElementById('leave-type-id').value;
-    if (isAdding) {
-        accumulatedBalanceInput.value = e.target.value;
-    }
-});
-
+annualLeavesInput.addEventListener('input', calculateTotalBalance);
+accumulatedBalanceInput.addEventListener('input', calculateTotalBalance);
 leaveForm.addEventListener('submit', handleLeaveFormSubmit);
 cycleSelect.addEventListener('change', () => {
     annualOptions.classList.toggle('hidden', cycleSelect.value !== 'annually');
