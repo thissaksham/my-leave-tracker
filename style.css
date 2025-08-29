@@ -3,6 +3,7 @@ body {
     background-color: #f3f4f6;
 }
 
+/* This is kept for any future modals, like delete confirmations */
 .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.5);
 }
@@ -16,3 +17,4 @@ body {
     transform: scale(0.95);
     pointer-events: none;
 }
+
