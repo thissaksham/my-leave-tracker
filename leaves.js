@@ -20,15 +20,19 @@ const customOptions = document.getElementById('custom-options');
 const accumulationCheckbox = document.getElementById('leave-accumulation');
 const accumulationOptions = document.getElementById('accumulation-options');
 const leaveFormError = document.getElementById('leave-form-error');
+const maxAccumulationInput = document.getElementById('leave-max-accumulation');
+const accumulationWarning = document.getElementById('accumulation-warning');
 
-const annualLeavesInput = document.getElementById('leave-total');
+const annualGrantInput = document.getElementById('leave-annual-grant');
+const balanceThisYearInput = document.getElementById('leave-balance-this-year');
 const accumulatedBalanceInput = document.getElementById('leave-accumulated-balance');
-const totalBalanceInput = document.getElementById('leave-balance');
+const totalBalanceInput = document.getElementById('leave-total-balance');
+
 
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
-    const annualGrant = leave.annualGrant || leave.total; // Backward compatibility
-    const percentage = annualGrant > 0 ? (leave.balance / annualGrant) * 100 : 0;
+    const annualGrant = leave.annualGrant || 0;
+    const percentage = annualGrant > 0 ? (leave.balanceThisYear / annualGrant) * 100 : 0;
     let bgColor = percentage < 25 ? 'bg-red-500' : percentage < 50 ? 'bg-yellow-500' : 'bg-green-500';
 
     let accumulationHTML = '';
@@ -36,10 +40,15 @@ export function renderLeaveType(leave, memberId, memberName) {
         const accBalance = leave.accumulatedBalance || 0;
         const accMax = leave.maxAccumulation;
         const accPercentage = accMax > 0 ? (accBalance / accMax) * 100 : 0;
+        const exceedsMax = accBalance > accMax;
+
         accumulationHTML = `
             <div>
                 <div class="flex justify-between items-center text-xs mb-1 mt-3">
-                    <span class="font-semibold text-gray-600">Accumulated</span>
+                    <span class="font-semibold text-gray-600 flex items-center">
+                        Accumulated
+                        ${exceedsMax ? `<svg class="w-4 h-4 ml-1 text-yellow-500" title="Balance exceeds maximum accumulation" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.22 3.006-1.742 3.006H4.42c-1.522 0-2.492-1.672-1.742-3.006l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>` : ''}
+                    </span>
                     <div><span class="font-bold">${accBalance}</span><span class="text-gray-500"> / ${accMax}</span></div>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${accPercentage}%"></div></div>
@@ -57,7 +66,7 @@ export function renderLeaveType(leave, memberId, memberName) {
                 </div>
                 <div class="flex items-baseline space-x-1">
                     <span class="font-bold text-lg">${leave.balance}</span>
-                    <span class="text-gray-500 text-sm">/ ${annualGrant} left</span>
+                    <span class="text-gray-500 text-sm">/ ${annualGrant} total</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -72,9 +81,14 @@ function openModal(modal) { modal.classList.remove('hidden'); }
 function closeModal(modal) { modal.classList.add('hidden'); }
 
 function calculateTotalBalance() {
-    const annual = parseFloat(annualLeavesInput.value) || 0;
+    const balanceThisYear = parseFloat(balanceThisYearInput.value) || 0;
     const accumulated = parseFloat(accumulatedBalanceInput.value) || 0;
-    totalBalanceInput.value = annual + accumulated;
+    totalBalanceInput.value = balanceThisYear + accumulated;
+
+    // Check for warning
+    const max = parseFloat(maxAccumulationInput.value) || 0;
+    const allowAccumulation = accumulationCheckbox.checked;
+    accumulationWarning.classList.toggle('hidden', !allowAccumulation || accumulated <= max);
 }
 
 function setupLeaveForm(leave = null, memberId) {
@@ -89,8 +103,9 @@ function setupLeaveForm(leave = null, memberId) {
         leaveModalTitle.innerText = 'Edit Leave Type';
         document.getElementById('leave-type-id').value = leave.id;
         document.getElementById('leave-type').value = leave.type;
-        annualLeavesInput.value = leave.annualGrant || leave.total; // Backward compatibility
-        totalBalanceInput.value = leave.balance;
+        annualGrantInput.value = leave.annualGrant;
+        balanceThisYearInput.value = leave.balanceThisYear;
+        accumulatedBalanceInput.value = leave.accumulatedBalance;
         cycleSelect.value = leave.resetCycle;
 
         if (leave.resetCycle === 'annually') {
@@ -102,15 +117,13 @@ function setupLeaveForm(leave = null, memberId) {
         }
         accumulationCheckbox.checked = leave.allowAccumulation;
         if (leave.allowAccumulation) {
-            document.getElementById('leave-max-accumulation').value = leave.maxAccumulation;
-            accumulatedBalanceInput.value = leave.accumulatedBalance;
+            maxAccumulationInput.value = leave.maxAccumulation;
         }
     } else { // Adding new leave
         leaveModalTitle.innerText = 'Add Leave Type';
         document.getElementById('leave-type-id').value = '';
     }
 
-    // Trigger calculation and visibility updates
     calculateTotalBalance();
     cycleSelect.dispatchEvent(new Event('change'));
     accumulationCheckbox.dispatchEvent(new Event('change'));
@@ -135,16 +148,16 @@ async function handleLeaveFormSubmit(e) {
         resetDetails.resetMonth = null;
     }
 
-    // Prepare data object with new field names
     const leaveData = {
         type: document.getElementById('leave-type').value.trim(),
-        annualGrant: parseFloat(annualLeavesInput.value),
-        balance: parseFloat(totalBalanceInput.value),
+        annualGrant: parseFloat(annualGrantInput.value) || 0,
+        balanceThisYear: parseFloat(balanceThisYearInput.value) || 0,
+        accumulatedBalance: allowAccumulation ? parseFloat(accumulatedBalanceInput.value) || 0 : 0,
+        balance: parseFloat(totalBalanceInput.value) || 0,
         resetCycle,
         ...resetDetails,
         allowAccumulation,
-        maxAccumulation: allowAccumulation ? parseFloat(document.getElementById('leave-max-accumulation').value) || 0 : 0,
-        accumulatedBalance: allowAccumulation ? parseFloat(accumulatedBalanceInput.value) || 0 : 0,
+        maxAccumulation: allowAccumulation ? parseFloat(maxAccumulationInput.value) || 0 : 0,
     };
 
     if (!leaveData.type || isNaN(leaveData.annualGrant)) {
@@ -202,8 +215,12 @@ document.addEventListener('click', (e) => {
     }
 });
 
-annualLeavesInput.addEventListener('input', calculateTotalBalance);
+annualGrantInput.addEventListener('input', calculateTotalBalance);
+balanceThisYearInput.addEventListener('input', calculateTotalBalance);
 accumulatedBalanceInput.addEventListener('input', calculateTotalBalance);
+maxAccumulationInput.addEventListener('input', calculateTotalBalance);
+accumulationCheckbox.addEventListener('change', calculateTotalBalance);
+
 leaveForm.addEventListener('submit', handleLeaveFormSubmit);
 cycleSelect.addEventListener('change', () => {
     annualOptions.classList.toggle('hidden', cycleSelect.value !== 'annually');
