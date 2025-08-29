@@ -68,7 +68,6 @@ export function renderLeaveType(leave, memberId, memberName) {
                 </div>
                 <div class="flex items-baseline space-x-1">
                     <span class="font-bold text-lg">${leave.balanceThisYear}</span> 
-                    // <span class="text-gray-500 text-sm">/ ${annualGrant} of this year's left</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
