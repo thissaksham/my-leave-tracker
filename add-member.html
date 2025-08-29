@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Member - Leave Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-lg shadow-xl p-8">
+            <h1 class="text-2xl font-bold text-center text-gray-900 mb-6">Add a New Family Member</h1>
+            
+            <form id="add-member-form" class="space-y-4">
+                <div>
+                    <label for="member-name" class="block text-sm font-medium text-gray-700">Member's Name</label>
+                    <input type="text" id="member-name" placeholder="e.g., Jane Doe" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                </div>
+
+                <p id="form-error" class="text-red-500 text-sm hidden"></p>
+
+                <div class="pt-4 flex flex-col sm:flex-row-reverse sm:items-center sm:space-x-3 sm:space-x-reverse">
+                    <button type="submit" id="save-member-btn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Save Member</button>
+                    <a href="index.html" class="w-full sm:w-auto mt-3 sm:mt-0 text-center bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="add-member.js" defer></script>
+</body>
+</html>
