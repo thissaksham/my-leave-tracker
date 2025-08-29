@@ -88,17 +88,17 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="leave-total" class="block text-sm font-medium text-gray-700">Annual Leaves</label>
-                            <input type="number" id="leave-total" min="0" placeholder="e.g., 20" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                            <label for="leave-annual-grant" class="block text-sm font-medium text-gray-700">Annual Grant</label>
+                            <input type="number" id="leave-annual-grant" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
                         </div>
                         <div>
-                            <label for="leave-accumulated-balance" class="block text-sm font-medium text-gray-700">Currently Accumulated</label>
-                            <input type="number" id="leave-accumulated-balance" min="0" placeholder="Carried over" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            <label for="leave-balance-this-year" class="block text-sm font-medium text-gray-700">Balance From This Year</label>
+                            <input type="number" id="leave-balance-this-year" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
                         </div>
                     </div>
                      <div>
-                        <label for="leave-balance" class="block text-sm font-medium text-gray-700">Total Current Balance (Calculated)</label>
-                        <input type="number" id="leave-balance" min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100" readonly>
+                        <label for="leave-total-balance" class="block text-sm font-medium text-gray-700">Total Available Balance (Calculated)</label>
+                        <input type="number" id="leave-total-balance" min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100" readonly>
                     </div>
                     <div>
                         <label for="leave-reset-cycle" class="block text-sm font-medium text-gray-700">Credit/Reset Cycle</label>
@@ -126,7 +126,15 @@
                     <div id="accumulation-options" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="leave-max-accumulation" class="block text-sm font-medium text-gray-700">Max Accumulation</label>
-                            <input type="number" id="leave-max-accumulation" min="0" placeholder="Max to carry" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            <input type="number" id="leave-max-accumulation" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                        </div>
+                        <div>
+                            <label for="leave-accumulated-balance" class="block text-sm font-medium text-gray-700">Accumulated From Last Year</label>
+                            <input type="number" id="leave-accumulated-balance" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                             <p id="accumulation-warning" class="hidden text-xs text-yellow-600 flex items-center mt-1">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.22 3.006-1.742 3.006H4.42c-1.522 0-2.492-1.672-1.742-3.006l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                Exceeds maximum
+                            </p>
                         </div>
                     </div>
                     <p id="leave-form-error" class="text-red-500 text-sm hidden"></p>
