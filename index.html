@@ -88,13 +88,17 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="leave-total" class="block text-sm font-medium text-gray-700">Total Leaves</label>
+                            <label for="leave-total" class="block text-sm font-medium text-gray-700">Annual Leaves</label>
                             <input type="number" id="leave-total" min="0" placeholder="e.g., 20" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
                         </div>
                         <div>
-                            <label for="leave-balance" class="block text-sm font-medium text-gray-700">Current Balance</label>
-                            <input type="number" id="leave-balance" min="0" placeholder="e.g., 8" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                            <label for="leave-accumulated-balance" class="block text-sm font-medium text-gray-700">Currently Accumulated</label>
+                            <input type="number" id="leave-accumulated-balance" min="0" placeholder="Carried over" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
                         </div>
+                    </div>
+                     <div>
+                        <label for="leave-balance" class="block text-sm font-medium text-gray-700">Total Current Balance (Calculated)</label>
+                        <input type="number" id="leave-balance" min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100" readonly>
                     </div>
                     <div>
                         <label for="leave-reset-cycle" class="block text-sm font-medium text-gray-700">Credit/Reset Cycle</label>
@@ -123,10 +127,6 @@
                         <div>
                             <label for="leave-max-accumulation" class="block text-sm font-medium text-gray-700">Max Accumulation</label>
                             <input type="number" id="leave-max-accumulation" min="0" placeholder="Max to carry" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
-                        </div>
-                        <div>
-                            <label for="leave-accumulated-balance" class="block text-sm font-medium text-gray-700">Currently Accumulated</label>
-                            <input type="number" id="leave-accumulated-balance" min="0" placeholder="Carried over" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
                         </div>
                     </div>
                     <p id="leave-form-error" class="text-red-500 text-sm hidden"></p>
