@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { initMembers, renderMembers, allMembersData } from "./members.js";
+import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initMembers, renderMembers } from "./members.js";
 import { initLeaves } from "./leaves.js";
 
 // --- Firebase Configuration ---
@@ -34,19 +34,15 @@ const membersGrid = document.getElementById('members-grid');
 onAuthStateChanged(auth, (user) => {
     if (user) {
         mainContent.classList.remove('hidden');
-        authControls.innerHTML = `
-            <div class="flex items-center space-x-2">
+        authControls.innerHTML = `<div class="flex items-center space-x-2">
                 <span class="text-sm text-gray-600">${user.email}</span>
                 <button id="sign-out-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Sign Out</button>
-            </div>
-        `;
+            </div>`;
         document.getElementById('sign-out-btn').addEventListener('click', () => signOut(auth));
         
-        // Initialize modules with Firebase instances and user ID
         initMembers(db, user.uid);
         initLeaves(db, user.uid);
 
-        // Start listening for data
         setupRealtimeListener(user.uid);
     } else {
         window.location.href = 'login.html';
@@ -56,19 +52,28 @@ onAuthStateChanged(auth, (user) => {
 // --- Realtime Data Listener ---
 function setupRealtimeListener(userId) {
     if (membersUnsubscribe) membersUnsubscribe();
+    
     const membersColRef = collection(db, `users/${userId}/members`);
+    const q = query(membersColRef, orderBy("createdAt"));
 
     loadingState.classList.remove('hidden');
 
-    membersUnsubscribe = onSnapshot(membersColRef, (snapshot) => {
-        const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        allMembersData.splice(0, allMembersData.length, ...members); // Update the shared members array
+    membersUnsubscribe = onSnapshot(q, (snapshot) => {
+        let members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Fallback sort for older members without a timestamp
+        members.sort((a, b) => {
+            const aTime = a.createdAt?.toMillis() || 0;
+            const bTime = b.createdAt?.toMillis() || 0;
+            return aTime - bTime;
+        });
 
-        renderMembers(allMembersData);
+        renderMembers(members); 
         
         loadingState.classList.add('hidden');
-        emptyState.classList.toggle('hidden', allMembersData.length > 0);
-        membersGrid.classList.toggle('hidden', allMembersData.length === 0);
+        const hasMembers = members.length > 0;
+        emptyState.classList.toggle('hidden', hasMembers);
+        membersGrid.classList.toggle('hidden', !hasMembers);
 
     }, (error) => {
         console.error("Error fetching members: ", error);
