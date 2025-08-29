@@ -32,25 +32,26 @@ const totalBalanceInput = document.getElementById('leave-total-balance');
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
     const annualGrant = leave.annualGrant || 0;
-    // The main progress bar should reflect the balance of this year's grant
+    // Main progress bar now shows this year's balance vs this year's grant
     const percentage = annualGrant > 0 ? (leave.balanceThisYear / annualGrant) * 100 : 0;
     let bgColor = percentage < 25 ? 'bg-red-500' : percentage < 50 ? 'bg-yellow-500' : 'bg-green-500';
 
     let accumulationHTML = '';
     if (leave.allowAccumulation && leave.maxAccumulation > 0) {
-        const accBalance = leave.accumulatedBalance || 0;
+        // This progress bar now shows the TOTAL available balance vs the max accumulation
+        const totalAvailable = leave.balance || 0;
         const accMax = leave.maxAccumulation;
-        const accPercentage = accMax > 0 ? (accBalance / accMax) * 100 : 0;
-        const exceedsMax = accBalance > accMax;
+        const accPercentage = accMax > 0 ? (totalAvailable / accMax) * 100 : 0;
+        const exceedsMax = totalAvailable > accMax;
 
         accumulationHTML = `
             <div>
                 <div class="flex justify-between items-center text-xs mb-1 mt-3">
                     <span class="font-semibold text-gray-600 flex items-center">
-                        Accumulated
-                        ${exceedsMax ? `<svg class="w-4 h-4 ml-1 text-yellow-500" title="Balance exceeds maximum accumulation" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.22 3.006-1.742 3.006H4.42c-1.522 0-2.492-1.672-1.742-3.006l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>` : ''}
+                        Accumulated Pool
+                        ${exceedsMax ? `<svg class="w-4 h-4 ml-1 text-yellow-500" title="Total balance exceeds maximum accumulation" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.22 3.006-1.742 3.006H4.42c-1.522 0-2.492-1.672-1.742-3.006l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>` : ''}
                     </span>
-                    <div><span class="font-bold">${accBalance}</span><span class="text-gray-500"> / ${accMax}</span></div>
+                    <div><span class="font-bold">${totalAvailable}</span><span class="text-gray-500"> / ${accMax}</span></div>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2.5"><div class="bg-indigo-500 h-2.5 rounded-full" style="width: ${accPercentage}%"></div></div>
             </div>`;
@@ -67,7 +68,7 @@ export function renderLeaveType(leave, memberId, memberName) {
                 </div>
                 <div class="flex items-baseline space-x-1">
                     <span class="font-bold text-lg">${leave.balanceThisYear}</span> 
-                    <span class="text-gray-500 text-sm">/ ${annualGrant} left</span>
+                    <span class="text-gray-500 text-sm">/ ${annualGrant} of this year's left</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -89,7 +90,8 @@ function calculateTotalBalance() {
     // Check for warning
     const max = parseFloat(maxAccumulationInput.value) || 0;
     const allowAccumulation = accumulationCheckbox.checked;
-    accumulationWarning.classList.toggle('hidden', !allowAccumulation || accumulated <= max);
+    // The warning should compare the total available balance to the max
+    accumulationWarning.classList.toggle('hidden', !allowAccumulation || (balanceThisYear + accumulated) <= max);
 }
 
 function setupLeaveForm(leave = null, memberId) {
