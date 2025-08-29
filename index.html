@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Leave Tracker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Link to your custom stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-gray-800">
+
+    <div id="app-container" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Leave tracker</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Family Members</h2>
+                <button id="add-member-btn" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300">
+                    + Add Member
+                </button>
+            </div>
+
+            <!-- Members Grid -->
+            <div id="members-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Member cards will be injected here by script.js -->
+            </div>
+            
+            <div id="loading-state" class="text-center py-10">
+                <p class="text-gray-500">Loading members...</p>
+            </div>
+
+            <div id="empty-state" class="hidden text-center py-20 bg-white rounded-lg shadow">
+                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21v-1a6 6 0 00-5.176-5.958" />
+                </svg>
+                <h3 class="mt-2 text-sm font-semibold text-gray-900">No members yet</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by adding a family member.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Member Modal -->
+    <div id="member-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="modal bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <h3 id="member-modal-title" class="text-xl font-bold mb-4">Add New Member</h3>
+                <form id="member-form">
+                    <input type="hidden" id="member-id">
+                    <div>
+                        <label for="member-name" class="block text-sm font-medium text-gray-700">Member Name</label>
+                        <input type="text" id="member-name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-member" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Save Member</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Leave Type Modal -->
+    <div id="leave-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="modal bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div class="p-6">
+                <h3 id="leave-modal-title" class="text-xl font-bold mb-4">Add Leave Type</h3>
+                <form id="leave-form" class="space-y-4">
+                    <input type="hidden" id="leave-member-id">
+                    <input type="hidden" id="leave-type-id">
+                    <div>
+                        <label for="leave-type" class="block text-sm font-medium text-gray-700">Leave Type Name</label>
+                        <input type="text" id="leave-type" placeholder="e.g., Casual Leave, Sick Leave" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="leave-total" class="block text-sm font-medium text-gray-700">Total Leaves</label>
+                            <input type="number" id="leave-total" min="0" placeholder="e.g., 20" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                        </div>
+                        <div>
+                            <label for="leave-balance" class="block text-sm font-medium text-gray-700">Current Balance</label>
+                            <input type="number" id="leave-balance" min="0" placeholder="e.g., 8" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="leave-reset-cycle" class="block text-sm font-medium text-gray-700">Credit/Reset Cycle</label>
+                        <select id="leave-reset-cycle" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            <option value="annually">Annually</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div id="reset-month-wrapper">
+                        <label for="leave-reset-month" class="block text-sm font-medium text-gray-700">New Leaves Credited In</label>
+                        <select id="leave-reset-month" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Leaves will reset on the 1st day of this month. Old balance expires on the last day of the previous month.</p>
+                    </div>
+                     <div id="custom-months-wrapper" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700">Select Credit Months</label>
+                        <div class="mt-2 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="1"><span>Jan</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="2"><span>Feb</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="3"><span>Mar</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="4"><span>Apr</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="5"><span>May</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="6"><span>Jun</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="7"><span>Jul</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="8"><span>Aug</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="9"><span>Sep</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="10"><span>Oct</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="11"><span>Nov</span></label>
+                            <label class="flex items-center space-x-2"><input type="checkbox" class="custom-month-checkbox h-4 w-4" value="12"><span>Dec</span></label>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="leave-accumulation" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="leave-accumulation" class="text-sm font-medium text-gray-700">Allow Accumulation (Carry Forward)</label>
+                    </div>
+                    <div id="max-accumulation-wrapper" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="leave-max-accumulation" class="block text-sm font-medium text-gray-700">Max Accumulation</label>
+                            <input type="number" id="leave-max-accumulation" min="0" placeholder="Max to carry forward" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                        </div>
+                        <div>
+                            <label for="leave-accumulated-balance" class="block text-sm font-medium text-gray-700">Currently Accumulated</label>
+                            <input type="number" id="leave-accumulated-balance" min="0" placeholder="Carried over leaves" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                        </div>
+                    </div>
+                     <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-leave" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Save Leave Type</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Log Leave Modal -->
+    <div id="log-leave-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="modal bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <h3 class="text-xl font-bold mb-4">Log Leave Usage</h3>
+                <form id="log-leave-form" class="space-y-4">
+                    <input type="hidden" id="log-leave-member-id">
+                    <input type="hidden" id="log-leave-type-id">
+                    <div>
+                        <label for="log-leave-date" class="block text-sm font-medium text-gray-700">Date of Leave</label>
+                        <input type="date" id="log-leave-date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                    </div>
+                    <div>
+                        <label for="log-leave-count" class="block text-sm font-medium text-gray-700">Number of Days</label>
+                        <input type="number" id="log-leave-count" min="0.5" step="0.5" value="1" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                    </div>
+                     <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancel-log-leave" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                        <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700">Log Leave</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="modal bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6 text-center">
+                 <svg class="mx-auto h-12 w-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                <h3 id="delete-modal-title" class="text-xl font-bold mt-4">Are you sure?</h3>
+                <p id="delete-modal-text" class="text-gray-600 my-2">This action cannot be undone.</p>
+                <div class="mt-6 flex justify-center space-x-3">
+                    <button id="cancel-delete" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button id="confirm-delete" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Your application's logic -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
