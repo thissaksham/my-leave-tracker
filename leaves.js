@@ -20,6 +20,8 @@ const customOptions = document.getElementById('custom-options');
 const accumulationCheckbox = document.getElementById('leave-accumulation');
 const accumulationOptions = document.getElementById('accumulation-options');
 const leaveFormError = document.getElementById('leave-form-error');
+const leaveBalanceInput = document.getElementById('leave-balance');
+const accumulatedBalanceInput = document.getElementById('leave-accumulated-balance');
 
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
@@ -80,7 +82,7 @@ function setupLeaveForm(leave = null, memberId) {
         document.getElementById('leave-type-id').value = leave.id;
         document.getElementById('leave-type').value = leave.type;
         document.getElementById('leave-total').value = leave.total;
-        document.getElementById('leave-balance').value = leave.balance;
+        leaveBalanceInput.value = leave.balance;
         cycleSelect.value = leave.resetCycle;
 
         if (leave.resetCycle === 'annually') {
@@ -93,11 +95,15 @@ function setupLeaveForm(leave = null, memberId) {
         accumulationCheckbox.checked = leave.allowAccumulation;
         if (leave.allowAccumulation) {
             document.getElementById('leave-max-accumulation').value = leave.maxAccumulation;
-            document.getElementById('leave-accumulated-balance').value = leave.accumulatedBalance;
+            accumulatedBalanceInput.value = leave.accumulatedBalance;
         }
     } else { // Adding new leave
         leaveModalTitle.innerText = 'Add Leave Type';
         document.getElementById('leave-type-id').value = '';
+        // New logic: auto-fill accumulated with current balance when adding
+        if (leaveBalanceInput.value) {
+            accumulatedBalanceInput.value = leaveBalanceInput.value;
+        }
     }
 
     cycleSelect.dispatchEvent(new Event('change'));
@@ -126,12 +132,12 @@ async function handleLeaveFormSubmit(e) {
     const leaveData = {
         type: document.getElementById('leave-type').value.trim(),
         total: parseFloat(document.getElementById('leave-total').value),
-        balance: parseFloat(document.getElementById('leave-balance').value),
+        balance: parseFloat(leaveBalanceInput.value),
         resetCycle,
         ...resetDetails,
         allowAccumulation,
         maxAccumulation: allowAccumulation ? parseFloat(document.getElementById('leave-max-accumulation').value) || 0 : 0,
-        accumulatedBalance: allowAccumulation ? parseFloat(document.getElementById('leave-accumulated-balance').value) || 0 : 0,
+        accumulatedBalance: allowAccumulation ? parseFloat(accumulatedBalanceInput.value) || 0 : 0,
     };
 
     if (!leaveData.type || isNaN(leaveData.total) || isNaN(leaveData.balance)) {
@@ -145,7 +151,7 @@ async function handleLeaveFormSubmit(e) {
         return;
     }
 
-    closeModal(leaveModal); // Close modal immediately for better UX
+    closeModal(leaveModal);
 
     try {
         const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
@@ -154,13 +160,13 @@ async function handleLeaveFormSubmit(e) {
             if (!memberDoc.exists()) throw "Member not found";
 
             const leaves = memberDoc.data().leaves || [];
-            if (leaveId) { // Update existing
+            if (leaveId) { 
                 const leaveIndex = leaves.findIndex(l => l.id === leaveId);
                 if (leaveIndex > -1) {
                     const originalLog = leaves[leaveIndex].log || [];
                     leaves[leaveIndex] = { ...leaves[leaveIndex], ...leaveData, log: originalLog };
                 }
-            } else { // Add new
+            } else { 
                 leaves.push({ ...leaveData, id: Date.now().toString(), log: [] });
             }
             transaction.update(memberDocRef, { leaves });
@@ -186,6 +192,15 @@ document.addEventListener('click', (e) => {
     }
     if (e.target.closest('.cancel-btn')) {
         closeModal(leaveModal);
+    }
+});
+
+// New listener for balance input change
+leaveBalanceInput.addEventListener('input', (e) => {
+    // Only auto-fill when ADDING a new leave
+    const isAdding = !document.getElementById('leave-type-id').value;
+    if (isAdding) {
+        accumulatedBalanceInput.value = e.target.value;
     }
 });
 
