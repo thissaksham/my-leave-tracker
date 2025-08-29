@@ -26,8 +26,6 @@ const accumulationWarning = document.getElementById('accumulation-warning');
 const annualGrantInput = document.getElementById('leave-annual-grant');
 const balanceThisYearInput = document.getElementById('leave-balance-this-year');
 const accumulatedBalanceInput = document.getElementById('leave-accumulated-balance');
-const totalBalanceInput = document.getElementById('leave-total-balance');
-
 
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
@@ -40,7 +38,6 @@ export function renderLeaveType(leave, memberId, memberName) {
         const totalAvailable = leave.balance || 0;
         const accMax = leave.maxAccumulation;
         let accPercentage = accMax > 0 ? (totalAvailable / accMax) * 100 : 0;
-        // Cap the percentage at 100 to prevent overflow
         if (accPercentage > 100) accPercentage = 100;
         const exceedsMax = totalAvailable > accMax;
 
@@ -68,8 +65,7 @@ export function renderLeaveType(leave, memberId, memberName) {
                 </div>
                 <div class="flex items-baseline space-x-1">
                     <span class="font-bold text-lg">${leave.balanceThisYear}</span> 
-                    <span class="text-gray-500 text-sm"> of ${annualGrant} left</span>
-
+                    <span class="text-gray-500 text-sm">/ ${leave.annualGrant} of this year's left</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
@@ -83,14 +79,11 @@ export function renderLeaveType(leave, memberId, memberName) {
 function openModal(modal) { modal.classList.remove('hidden'); }
 function closeModal(modal) { modal.classList.add('hidden'); }
 
-function calculateTotalBalance() {
-    const balanceThisYear = parseFloat(balanceThisYearInput.value) || 0;
+function checkAccumulationWarning() {
     const accumulated = parseFloat(accumulatedBalanceInput.value) || 0;
-    totalBalanceInput.value = balanceThisYear + accumulated;
-
     const max = parseFloat(maxAccumulationInput.value) || 0;
     const allowAccumulation = accumulationCheckbox.checked;
-    accumulationWarning.classList.toggle('hidden', !allowAccumulation || (balanceThisYear + accumulated) <= max);
+    accumulationWarning.classList.toggle('hidden', !allowAccumulation || accumulated <= max);
 }
 
 function setupLeaveForm(leave = null, memberId) {
@@ -126,7 +119,7 @@ function setupLeaveForm(leave = null, memberId) {
         document.getElementById('leave-type-id').value = '';
     }
 
-    calculateTotalBalance();
+    checkAccumulationWarning();
     cycleSelect.dispatchEvent(new Event('change'));
     accumulationCheckbox.dispatchEvent(new Event('change'));
     openModal(leaveModal);
@@ -150,12 +143,15 @@ async function handleLeaveFormSubmit(e) {
         resetDetails.resetMonth = null;
     }
 
+    const balanceThisYear = parseFloat(balanceThisYearInput.value) || 0;
+    const accumulatedBalance = allowAccumulation ? parseFloat(accumulatedBalanceInput.value) || 0 : 0;
+    
     const leaveData = {
         type: document.getElementById('leave-type').value.trim(),
         annualGrant: parseFloat(annualGrantInput.value) || 0,
-        balanceThisYear: parseFloat(balanceThisYearInput.value) || 0,
-        accumulatedBalance: allowAccumulation ? parseFloat(accumulatedBalanceInput.value) || 0 : 0,
-        balance: parseFloat(totalBalanceInput.value) || 0,
+        balanceThisYear: balanceThisYear,
+        accumulatedBalance: accumulatedBalance,
+        balance: balanceThisYear + accumulatedBalance, // Total balance is calculated here
         resetCycle,
         ...resetDetails,
         allowAccumulation,
@@ -217,11 +213,9 @@ document.addEventListener('click', (e) => {
     }
 });
 
-annualGrantInput.addEventListener('input', calculateTotalBalance);
-balanceThisYearInput.addEventListener('input', calculateTotalBalance);
-accumulatedBalanceInput.addEventListener('input', calculateTotalBalance);
-maxAccumulationInput.addEventListener('input', calculateTotalBalance);
-accumulationCheckbox.addEventListener('change', calculateTotalBalance);
+accumulatedBalanceInput.addEventListener('input', checkAccumulationWarning);
+maxAccumulationInput.addEventListener('input', checkAccumulationWarning);
+accumulationCheckbox.addEventListener('change', checkAccumulationWarning);
 
 leaveForm.addEventListener('submit', handleLeaveFormSubmit);
 cycleSelect.addEventListener('change', () => {
