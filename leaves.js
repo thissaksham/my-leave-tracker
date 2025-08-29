@@ -117,8 +117,10 @@ async function handleLeaveFormSubmit(e) {
     let resetDetails = {};
     if (resetCycle === 'annually') {
         resetDetails.resetMonth = document.getElementById('leave-reset-month').value;
+        resetDetails.creditMonths = []; // Explicitly clear custom months
     } else {
         resetDetails.creditMonths = Array.from(customOptions.querySelectorAll('input:checked')).map(cb => cb.value);
+        resetDetails.resetMonth = null; // Explicitly clear annual month
     }
 
     const leaveData = {
@@ -179,3 +181,4 @@ cycleSelect.addEventListener('change', () => {
 accumulationCheckbox.addEventListener('change', () => {
     accumulationOptions.classList.toggle('hidden', !accumulationCheckbox.checked);
 });
+
