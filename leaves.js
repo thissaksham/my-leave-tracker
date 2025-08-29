@@ -32,6 +32,7 @@ const totalBalanceInput = document.getElementById('leave-total-balance');
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
     const annualGrant = leave.annualGrant || 0;
+    // The main progress bar should reflect the balance of this year's grant
     const percentage = annualGrant > 0 ? (leave.balanceThisYear / annualGrant) * 100 : 0;
     let bgColor = percentage < 25 ? 'bg-red-500' : percentage < 50 ? 'bg-yellow-500' : 'bg-green-500';
 
@@ -55,6 +56,8 @@ export function renderLeaveType(leave, memberId, memberName) {
             </div>`;
     }
 
+    // The text display should show the total available balance (this year + accumulated)
+    // The sub-text should show this year's balance vs this year's grant
     return `
         <div class="leave-item border border-gray-200 p-3 rounded-lg">
             <div class="flex justify-between items-center text-sm mb-2">
@@ -65,8 +68,8 @@ export function renderLeaveType(leave, memberId, memberName) {
                     </button>
                 </div>
                 <div class="flex items-baseline space-x-1">
-                    <span class="font-bold text-lg">${leave.balance}</span>
-                    <span class="text-gray-500 text-sm">/ ${annualGrant} total</span>
+                    <span class="font-bold text-lg">${leave.balance}</span> 
+                    <span class="text-gray-500 text-sm">/ ${leave.balanceThisYear} of ${annualGrant} left</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
