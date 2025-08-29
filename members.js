@@ -2,7 +2,7 @@ import { doc, addDoc, updateDoc, deleteDoc, collection } from "https://www.gstat
 import { renderLeaveType } from "./leaves.js";
 
 let db, userId;
-export const allMembersData = []; // Shared array of members
+export let allMembersData = []; // Changed to let for reassignment
 
 // --- Initialization ---
 export function initMembers(_db, _userId) {
@@ -22,6 +22,7 @@ const deleteModal = document.getElementById('delete-modal');
 export function renderMembers(members) {
     const membersGrid = document.getElementById('members-grid');
     membersGrid.innerHTML = '';
+    allMembersData = members; // Update local cache
     members.forEach(member => {
         const card = document.createElement('div');
         card.className = 'bg-white p-5 rounded-lg shadow-md';
@@ -73,7 +74,7 @@ function setupDeleteModal(memberId) {
     document.getElementById('delete-modal-text').innerText = `Are you sure you want to delete this member and all their leave data? This is permanent.`;
     
     const confirmBtn = document.getElementById('confirm-delete-btn');
-    confirmBtn.onclick = () => handleDeleteMember(memberId); // Set specific action
+    confirmBtn.onclick = () => handleDeleteMember(memberId);
     openModal(deleteModal);
 }
 
@@ -84,20 +85,31 @@ async function handleMemberFormSubmit(e) {
     const memberName = memberNameInput.value.trim();
     if (!memberName) return;
 
-    if (memberId) { // Edit existing member
-        const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
-        await updateDoc(memberDocRef, { name: memberName });
-    } else { // Add new member
-        const membersColRef = collection(db, `users/${userId}/members`);
-        await addDoc(membersColRef, { name: memberName, leaves: [] });
+    closeModal(memberModal); // Close modal immediately for better UX
+
+    try {
+        if (memberId) { // Edit existing member
+            const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
+            await updateDoc(memberDocRef, { name: memberName });
+        } else { // Add new member
+            const membersColRef = collection(db, `users/${userId}/members`);
+            await addDoc(membersColRef, { name: memberName, leaves: [] });
+        }
+    } catch (error) {
+        console.error("Error saving member:", error);
+        alert("Could not save member details. Please try again.");
     }
-    closeModal(memberModal);
 }
 
 async function handleDeleteMember(memberId) {
-    const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
-    await deleteDoc(memberDocRef);
-    closeModal(deleteModal);
+    closeModal(deleteModal); // Close modal immediately
+    try {
+        const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
+        await deleteDoc(memberDocRef);
+    } catch (error) {
+        console.error("Error deleting member:", error);
+        alert("Could not delete member. Please try again.");
+    }
 }
 
 // --- Event Listeners ---
@@ -120,3 +132,4 @@ document.addEventListener('click', (e) => {
 });
 
 memberForm.addEventListener('submit', handleMemberFormSubmit);
+
