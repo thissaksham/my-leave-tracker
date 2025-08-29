@@ -56,8 +56,6 @@ export function renderLeaveType(leave, memberId, memberName) {
             </div>`;
     }
 
-    // The text display should show the total available balance (this year + accumulated)
-    // The sub-text should show this year's balance vs this year's grant
     return `
         <div class="leave-item border border-gray-200 p-3 rounded-lg">
             <div class="flex justify-between items-center text-sm mb-2">
@@ -68,8 +66,8 @@ export function renderLeaveType(leave, memberId, memberName) {
                     </button>
                 </div>
                 <div class="flex items-baseline space-x-1">
-                    <span class="font-bold text-lg">${leave.balance}</span> 
-                    <span class="text-gray-500 text-sm">/ ${leave.balanceThisYear} of ${annualGrant} left</span>
+                    <span class="font-bold text-lg">${leave.balanceThisYear}</span> 
+                    <span class="text-gray-500 text-sm">/ ${annualGrant} left</span>
                 </div>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
