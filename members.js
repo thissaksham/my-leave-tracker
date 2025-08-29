@@ -1,8 +1,8 @@
-import { doc, addDoc, updateDoc, deleteDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, addDoc, updateDoc, deleteDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { renderLeaveType } from "./leaves.js";
 
 let db, userId;
-export let allMembersData = []; // Changed to let for reassignment
+export let allMembersData = [];
 
 // --- Initialization ---
 export function initMembers(_db, _userId) {
@@ -22,7 +22,7 @@ const deleteModal = document.getElementById('delete-modal');
 export function renderMembers(members) {
     const membersGrid = document.getElementById('members-grid');
     membersGrid.innerHTML = '';
-    allMembersData = members; // Update local cache
+    allMembersData = members; 
     members.forEach(member => {
         const card = document.createElement('div');
         card.className = 'bg-white p-5 rounded-lg shadow-md';
@@ -85,15 +85,19 @@ async function handleMemberFormSubmit(e) {
     const memberName = memberNameInput.value.trim();
     if (!memberName) return;
 
-    closeModal(memberModal); // Close modal immediately for better UX
+    closeModal(memberModal);
 
     try {
-        if (memberId) { // Edit existing member
+        if (memberId) {
             const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
             await updateDoc(memberDocRef, { name: memberName });
-        } else { // Add new member
+        } else {
             const membersColRef = collection(db, `users/${userId}/members`);
-            await addDoc(membersColRef, { name: memberName, leaves: [] });
+            await addDoc(membersColRef, { 
+                name: memberName, 
+                leaves: [],
+                createdAt: serverTimestamp() // Add timestamp for sorting
+            });
         }
     } catch (error) {
         console.error("Error saving member:", error);
@@ -102,7 +106,7 @@ async function handleMemberFormSubmit(e) {
 }
 
 async function handleDeleteMember(memberId) {
-    closeModal(deleteModal); // Close modal immediately
+    closeModal(deleteModal);
     try {
         const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
         await deleteDoc(memberDocRef);
