@@ -7,14 +7,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
 // --- Firebase Configuration ---
-// IMPORTANT: Replace this with your own Firebase project configuration!
+// This has been updated with your project's credentials.
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDS_0l3bm0rD9jJQflPKSuOgozW7BER5po",
+  authDomain: "my-leave-tracker-36667.firebaseapp.com",
+  projectId: "my-leave-tracker-36667",
+  storageBucket: "my-leave-tracker-36667.firebasestorage.app",
+  messagingSenderId: "636636683959",
+  appId: "1:636636683959:web:730b205d836b03a6c83732",
+  measurementId: "G-M688YR5B4H"
 };
 
 // Initialize Firebase
@@ -97,7 +98,10 @@ function getFriendlyAuthError(errorCode) {
             return 'An account with this email already exists.';
         case 'auth/weak-password':
             return 'Password should be at least 6 characters long.';
+        case 'auth/invalid-credential':
+            return 'Invalid email or password.';
         default:
             return 'An unexpected error occurred. Please try again.';
     }
 }
+
