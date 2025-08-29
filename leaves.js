@@ -32,16 +32,16 @@ const totalBalanceInput = document.getElementById('leave-total-balance');
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
     const annualGrant = leave.annualGrant || 0;
-    // Main progress bar now shows this year's balance vs this year's grant
     const percentage = annualGrant > 0 ? (leave.balanceThisYear / annualGrant) * 100 : 0;
     let bgColor = percentage < 25 ? 'bg-red-500' : percentage < 50 ? 'bg-yellow-500' : 'bg-green-500';
 
     let accumulationHTML = '';
     if (leave.allowAccumulation && leave.maxAccumulation > 0) {
-        // This progress bar now shows the TOTAL available balance vs the max accumulation
         const totalAvailable = leave.balance || 0;
         const accMax = leave.maxAccumulation;
-        const accPercentage = accMax > 0 ? (totalAvailable / accMax) * 100 : 0;
+        let accPercentage = accMax > 0 ? (totalAvailable / accMax) * 100 : 0;
+        // Cap the percentage at 100 to prevent overflow
+        if (accPercentage > 100) accPercentage = 100;
         const exceedsMax = totalAvailable > accMax;
 
         accumulationHTML = `
@@ -87,10 +87,8 @@ function calculateTotalBalance() {
     const accumulated = parseFloat(accumulatedBalanceInput.value) || 0;
     totalBalanceInput.value = balanceThisYear + accumulated;
 
-    // Check for warning
     const max = parseFloat(maxAccumulationInput.value) || 0;
     const allowAccumulation = accumulationCheckbox.checked;
-    // The warning should compare the total available balance to the max
     accumulationWarning.classList.toggle('hidden', !allowAccumulation || (balanceThisYear + accumulated) <= max);
 }
 
