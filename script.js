@@ -34,7 +34,12 @@ const membersGrid = document.getElementById('members-grid');
 onAuthStateChanged(auth, (user) => {
     if (user) {
         mainContent.classList.remove('hidden');
-        authControls.innerHTML = `<span class="text-sm text-gray-600">${user.email}</span><button id="sign-out-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Sign Out</button>`;
+        authControls.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-600">${user.email}</span>
+                <button id="sign-out-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Sign Out</button>
+            </div>
+        `;
         document.getElementById('sign-out-btn').addEventListener('click', () => signOut(auth));
         
         // Initialize modules with Firebase instances and user ID
@@ -57,10 +62,8 @@ function setupRealtimeListener(userId) {
 
     membersUnsubscribe = onSnapshot(membersColRef, (snapshot) => {
         const members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Update the shared members array in the members module
-        allMembersData.splice(0, allMembersData.length, ...members); 
+        allMembersData.splice(0, allMembersData.length, ...members); // Update the shared members array
 
-        // Call the render function from the members module
         renderMembers(allMembersData);
         
         loadingState.classList.add('hidden');
