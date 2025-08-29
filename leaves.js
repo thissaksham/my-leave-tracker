@@ -1,4 +1,4 @@
-import { doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { allMembersData } from "./members.js";
 
 let db, userId;
@@ -19,6 +19,7 @@ const annualOptions = document.getElementById('annual-options');
 const customOptions = document.getElementById('custom-options');
 const accumulationCheckbox = document.getElementById('leave-accumulation');
 const accumulationOptions = document.getElementById('accumulation-options');
+const leaveFormError = document.getElementById('leave-form-error');
 
 // --- Rendering ---
 export function renderLeaveType(leave, memberId, memberName) {
@@ -68,6 +69,7 @@ function closeModal(modal) { modal.classList.add('hidden'); }
 
 function setupLeaveForm(leave = null, memberId) {
     leaveForm.reset();
+    leaveFormError.classList.add('hidden');
     const member = allMembersData.find(m => m.id === memberId);
     
     document.getElementById('leave-member-id').value = memberId;
@@ -98,7 +100,6 @@ function setupLeaveForm(leave = null, memberId) {
         document.getElementById('leave-type-id').value = '';
     }
 
-    // Update visibility based on current state
     cycleSelect.dispatchEvent(new Event('change'));
     accumulationCheckbox.dispatchEvent(new Event('change'));
     openModal(leaveModal);
@@ -110,17 +111,16 @@ async function handleLeaveFormSubmit(e) {
     const memberId = document.getElementById('leave-member-id').value;
     const leaveId = document.getElementById('leave-type-id').value;
     
-    // --- Collect Form Data ---
     const resetCycle = cycleSelect.value;
     const allowAccumulation = accumulationCheckbox.checked;
     
     let resetDetails = {};
     if (resetCycle === 'annually') {
         resetDetails.resetMonth = document.getElementById('leave-reset-month').value;
-        resetDetails.creditMonths = []; // Explicitly clear custom months
+        resetDetails.creditMonths = [];
     } else {
         resetDetails.creditMonths = Array.from(customOptions.querySelectorAll('input:checked')).map(cb => cb.value);
-        resetDetails.resetMonth = null; // Explicitly clear annual month
+        resetDetails.resetMonth = null;
     }
 
     const leaveData = {
@@ -134,25 +134,41 @@ async function handleLeaveFormSubmit(e) {
         accumulatedBalance: allowAccumulation ? parseFloat(document.getElementById('leave-accumulated-balance').value) || 0 : 0,
     };
 
-    const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
-    await runTransaction(db, async (transaction) => {
-        const memberDoc = await transaction.get(memberDocRef);
-        if (!memberDoc.exists()) throw "Member not found";
+    if (!leaveData.type || isNaN(leaveData.total) || isNaN(leaveData.balance)) {
+        leaveFormError.innerText = "Please fill in all required fields.";
+        leaveFormError.classList.remove('hidden');
+        return;
+    }
+     if (resetCycle === 'custom' && leaveData.creditMonths.length === 0) {
+        leaveFormError.innerText = "Please select at least one credit month for the custom cycle.";
+        leaveFormError.classList.remove('hidden');
+        return;
+    }
 
-        const leaves = memberDoc.data().leaves || [];
-        if (leaveId) { // Update existing
-            const leaveIndex = leaves.findIndex(l => l.id === leaveId);
-            if (leaveIndex > -1) {
-                const originalLog = leaves[leaveIndex].log || [];
-                leaves[leaveIndex] = { ...leaves[leaveIndex], ...leaveData, log: originalLog };
+    closeModal(leaveModal); // Close modal immediately for better UX
+
+    try {
+        const memberDocRef = doc(db, `users/${userId}/members/${memberId}`);
+        await runTransaction(db, async (transaction) => {
+            const memberDoc = await transaction.get(memberDocRef);
+            if (!memberDoc.exists()) throw "Member not found";
+
+            const leaves = memberDoc.data().leaves || [];
+            if (leaveId) { // Update existing
+                const leaveIndex = leaves.findIndex(l => l.id === leaveId);
+                if (leaveIndex > -1) {
+                    const originalLog = leaves[leaveIndex].log || [];
+                    leaves[leaveIndex] = { ...leaves[leaveIndex], ...leaveData, log: originalLog };
+                }
+            } else { // Add new
+                leaves.push({ ...leaveData, id: Date.now().toString(), log: [] });
             }
-        } else { // Add new
-            leaves.push({ ...leaveData, id: Date.now().toString(), log: [] });
-        }
-        transaction.update(memberDocRef, { leaves });
-    });
-    
-    closeModal(leaveModal);
+            transaction.update(memberDocRef, { leaves });
+        });
+    } catch (error) {
+        console.error("Error saving leave type:", error);
+        alert("Could not save leave type. Please try again.");
+    }
 }
 
 // --- Event Listeners ---
