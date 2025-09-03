@@ -42,11 +42,11 @@ authToggleBtn.addEventListener('click', () => {
     authForm.reset(); // Clear the inputs
 
     if (isLoginMode) {
-        authModalTitle.innerText = 'Login to your account';
+        authModalTitle.innerText = 'Welcome back';
         authSubmitBtn.innerText = 'Login';
         authToggleBtn.innerText = "Don't have an account? Register";
     } else {
-        authModalTitle.innerText = 'Create a new account';
+        authModalTitle.innerText = 'Create your account';
         authSubmitBtn.innerText = 'Register';
         authToggleBtn.innerText = 'Already have an account? Login';
     }
@@ -71,7 +71,14 @@ authForm.addEventListener('submit', async (e) => {
         // onAuthStateChanged will handle the redirect
     } catch (error) {
         console.error("Authentication Error:", error.message);
-        authError.innerText = getFriendlyAuthError(error.code);
+        authError.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                ${getFriendlyAuthError(error.code)}
+            </div>
+        `;
         authError.classList.remove('hidden');
     }
 });

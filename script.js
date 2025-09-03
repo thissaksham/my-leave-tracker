@@ -34,9 +34,14 @@ const membersGrid = document.getElementById('members-grid');
 onAuthStateChanged(auth, (user) => {
     if (user) {
         mainContent.classList.remove('hidden');
-        authControls.innerHTML = `<div class="flex items-center space-x-2">
-                <span class="text-sm text-gray-600">${user.email}</span>
-                <button id="sign-out-btn" class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Sign Out</button>
+        authControls.innerHTML = `<div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">${user.email.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <span class="text-sm text-gray-700 font-medium">${user.email}</span>
+                </div>
+                <button id="sign-out-btn" class="btn-secondary bg-white text-gray-700 font-semibold py-2 px-4 rounded-xl hover:bg-gray-50 border border-gray-200 transition duration-200">Sign Out</button>
             </div>`;
         document.getElementById('sign-out-btn').addEventListener('click', () => signOut(auth));
         

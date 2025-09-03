@@ -25,25 +25,36 @@ export function renderMembers(members) {
     allMembersData = members; 
     members.forEach(member => {
         const card = document.createElement('div');
-        card.className = 'bg-white p-5 rounded-lg shadow-md';
+        card.className = 'member-card bg-white p-6 rounded-2xl shadow-lg border border-gray-100';
         const leavesHTML = (member.leaves || []).map(leave => renderLeaveType(leave, member.id, member.name)).join('');
         
         card.innerHTML = `
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">${member.name.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">${member.name}</h3>
+                        <p class="text-sm text-gray-500">${(member.leaves || []).length} leave type${(member.leaves || []).length !== 1 ? 's' : ''}</p>
+                    </div>
+                </div>
                 <div class="flex items-center space-x-2">
-                    <h3 class="text-lg font-bold text-gray-900">${member.name}</h3>
-                    <button class="edit-member-btn text-gray-400 hover:text-blue-500" data-member-id="${member.id}">
+                    <button class="edit-member-btn text-gray-400 hover:text-blue-500 p-2 rounded-lg hover:bg-blue-50 transition duration-200" data-member-id="${member.id}" title="Edit member">
                         <svg class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
                     </button>
-                    <button class="delete-member-btn text-gray-400 hover:text-red-500" data-member-id="${member.id}">
+                    <button class="delete-member-btn text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-red-50 transition duration-200" data-member-id="${member.id}" title="Delete member">
                         <svg class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3.5A1.5 1.5 0 0 1 8.5 2h3A1.5 1.5 0 0 1 13 3.5V5H7V3.5zM5 6V5h10v1H5zm-1 1a1 1 0 0 0-1 1v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1H4z" /></svg>
                     </button>
                 </div>
             </div>
-            <div class="mt-4 space-y-3">${leavesHTML}</div>
-            <div class="mt-4">
-                <button class="add-leave-btn w-full block text-center bg-blue-50 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-100 transition" data-member-id="${member.id}">
-                    + Add Leave Type
+            ${leavesHTML ? `<div class="space-y-4 mb-6">${leavesHTML}</div>` : '<div class="text-center py-8 text-gray-500"><p class="text-sm">No leave types added yet</p></div>'}
+            <div>
+                <button class="add-leave-btn w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 font-semibold py-3 px-4 rounded-xl hover:from-blue-100 hover:to-purple-100 transition duration-300 border border-blue-200" data-member-id="${member.id}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    <span>Add Leave Type</span>
                 </button>
             </div>`;
         membersGrid.appendChild(card);

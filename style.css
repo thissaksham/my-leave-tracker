@@ -1,20 +1,165 @@
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f3f4f6;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
 }
 
-/* This is kept for any future modals, like delete confirmations */
+/* Enhanced modal styling */
 .modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
 }
 
 .modal {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateY(0);
 }
 
 .modal.hidden {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateY(-20px) scale(0.95);
     pointer-events: none;
 }
 
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Enhanced button animations */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-1px);
+}
+
+/* Card hover effects */
+.member-card {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.member-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border-color: #e5e7eb;
+}
+
+/* Leave item enhancements */
+.leave-item {
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.leave-item:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Progress bar animations */
+.progress-bar {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Form input enhancements */
+.form-input {
+    transition: all 0.2s ease;
+    border: 2px solid #e5e7eb;
+}
+
+.form-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Loading animation */
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-low {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.status-medium {
+    background-color: #fffbeb;
+    color: #d97706;
+}
+
+.status-high {
+    background-color: #f0fdf4;
+    color: #16a34a;
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+    .member-card {
+        margin-bottom: 1rem;
+    }
+    
+    .modal {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+}
+
+/* Glassmorphism effect for main container */
+.glass-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Enhanced empty state */
+.empty-state-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
