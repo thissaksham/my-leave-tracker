@@ -3,6 +3,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { initMembers, renderMembers } from "./members.js";
 import { initLeaves } from "./leaves.js";
+import { renderDashboardStats } from "./dashboard-stats.js";
 
 // --- Firebase Configuration ---
 const firebaseConfig = {
@@ -74,6 +75,7 @@ function setupRealtimeListener(userId) {
         });
 
         renderMembers(members); 
+        renderDashboardStats(members);
         
         loadingState.classList.add('hidden');
         const hasMembers = members.length > 0;
@@ -85,4 +87,3 @@ function setupRealtimeListener(userId) {
         loadingState.innerText = "Error loading data.";
     });
 }
-
